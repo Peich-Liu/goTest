@@ -13,12 +13,15 @@ import "C"
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
+	"runtime"
 	"runtime/trace"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 	"unsafe"
 )
 
@@ -56,11 +59,11 @@ func producer(buffer []int, ch chan<- int, pause chan struct{}, wg *sync.WaitGro
 	defer wg.Done()
 	for _, num := range buffer {
 		ch <- num // 发送数据
-		fmt.Println("Producer produces:", num)
+		// fmt.Println("Producer produces:", num)
 
 		// 如果数据是 10，则阻塞，等待消费者计算
 		if num == 10 {
-			fmt.Println("Producer pauses, waiting for consumer calculation...")
+			// fmt.Println("Producer pauses, waiting for consumer calculation...")
 			<-pause // 生产者暂停
 		}
 		// time.Sleep(time.Second) // 模拟读取过程
@@ -73,11 +76,11 @@ func producer2(buffer []int, ch chan<- int, pause chan struct{}, wg *sync.WaitGr
 	defer wg.Done()
 	for _, num := range buffer {
 		ch <- num // 发送数据
-		fmt.Println("Producer2 produces:", num)
+		// fmt.Println("Producer2 produces:", num)
 
 		// 如果数据是 10，则阻塞，等待消费者计算
 		if num == 10 {
-			fmt.Println("Producer2 pauses, waiting for consumer calculation...")
+			// fmt.Println("Producer2 pauses, waiting for consumer calculation...")
 			<-pause // 生产者暂停
 		}
 		// time.Sleep(time.Second) // 模拟读取过程
@@ -90,11 +93,11 @@ func producer3(buffer []int, ch chan<- int, pause chan struct{}, wg *sync.WaitGr
 	defer wg.Done()
 	for _, num := range buffer {
 		ch <- num // 发送数据
-		fmt.Println("Producer3 produces:", num)
+		// fmt.Println("Producer3 produces:", num)
 
 		// 如果数据是 10，则阻塞，等待消费者计算
 		if num == 10 {
-			fmt.Println("Producer3 pauses, waiting for consumer calculation...")
+			// fmt.Println("Producer3 pauses, waiting for consumer calculation...")
 			<-pause // 生产者暂停
 		}
 		// time.Sleep(time.Second) // 模拟读取过程
@@ -107,11 +110,11 @@ func producer4(buffer []int, ch chan<- int, pause chan struct{}, wg *sync.WaitGr
 	defer wg.Done()
 	for _, num := range buffer {
 		ch <- num // 发送数据
-		fmt.Println("Producer4 produces:", num)
+		// fmt.Println("Producer4 produces:", num)
 
 		// 如果数据是 10，则阻塞，等待消费者计算
 		if num == 10 {
-			fmt.Println("Producer4 pauses, waiting for consumer calculation...")
+			// fmt.Println("Producer4 pauses, waiting for consumer calculation...")
 			<-pause // 生产者暂停
 		}
 		// time.Sleep(time.Second) // 模拟读取过程
@@ -128,11 +131,11 @@ func consumer(ch <-chan int, pause chan struct{}, wg *sync.WaitGroup) {
 
 		// 如果数据是 10，则计算平均数
 		if num == 10 {
-			fmt.Println("Consumer 1 starts calculating the average...")
+			// fmt.Println("Consumer 1 starts calculating the average...")
 			avg := computeAverage(data)
 			// time.Sleep(2 * time.Second) // 模拟计算过程
 			fmt.Printf("Average 1 calculation result: %.2f\n", avg)
-			fmt.Println("Consumer 1 completes calculation and notifies the producer to continue...")
+			// fmt.Println("Consumer 1 completes calculation and notifies the producer to continue...")
 
 			// 发送信号，让生产者继续
 			pause <- struct{}{}
@@ -149,11 +152,11 @@ func consumer2(ch <-chan int, pause chan struct{}, wg *sync.WaitGroup) {
 
 		// 如果数据是 10，则计算平均数
 		if num == 10 {
-			fmt.Println("Consumer 2 starts calculating the average using C++...")
+			// fmt.Println("Consumer 2 starts calculating the average using C++...")
 			// time.Sleep(2 * time.Second) // 模拟计算过程
 			avg := computeAverageWithCpp(data)
 			fmt.Printf("Average 2 calculation result (C++): %.2f\n", avg)
-			fmt.Println("Consumer 2 completes calculation and notifies the producer to continue...")
+			// fmt.Println("Consumer 2 completes calculation and notifies the producer to continue...")
 
 			// 发送信号，让生产者继续
 			pause <- struct{}{}
@@ -170,11 +173,11 @@ func consumer4(ch <-chan int, pause chan struct{}, wg *sync.WaitGroup) {
 
 		// 如果数据是 10，则计算平均数
 		if num == 10 {
-			fmt.Println("Consumer 4 starts calculating the average using C++...")
+			// fmt.Println("Consumer 4 starts calculating the average using C++...")
 			// time.Sleep(2 * time.Second) // 模拟计算过程
 			avg := computeAverageWithCpp(data)
 			fmt.Printf("Average 4 calculation result (C++): %.2f\n", avg)
-			fmt.Println("Consumer 4 completes calculation and notifies the producer to continue...")
+			// fmt.Println("Consumer 4 completes calculation and notifies the producer to continue...")
 
 			// 发送信号，让生产者继续
 			pause <- struct{}{}
@@ -190,7 +193,7 @@ func consumer3(ch <-chan int, pause chan struct{}, wg *sync.WaitGroup) {
 		data = append(data, num)
 
 		if num == 10 {
-			fmt.Println("Consumer 3 starts calculating the average using Python...")
+			// fmt.Println("Consumer 3 starts calculating the average using Python...")
 			// time.Sleep(2 * time.Second) // 模拟计算过程
 
 			// 演示：通过启动 python 命令并通过命令行参数传递数据
@@ -218,12 +221,24 @@ func consumer3(ch <-chan int, pause chan struct{}, wg *sync.WaitGroup) {
 				fmt.Printf("Average 3 calculation result (Python): %.2f\n", avgValue)
 			}
 
-			fmt.Println("Consumer 3 completes calculation and notifies the producer to continue...")
+			// fmt.Println("Consumer 3 completes calculation and notifies the producer to continue...")
 			pause <- struct{}{}
 		}
 	}
 }
+func generateRandomArray(size int, maxVal int) []int {
+	rand.Seed(time.Now().UnixNano()) // 使用当前时间设置随机数种子，确保每次运行生成不同的随机数
+
+	arr := make([]int, size) // 创建一个长度为 size 的数组
+	for i := 0; i < size; i++ {
+		arr[i] = rand.Intn(maxVal) // 生成 [0, maxVal) 之间的随机整数
+	}
+	return arr
+}
 func main() {
+	cpuNum := runtime.NumCPU()
+	fmt.Println("当前机器的逻辑CPU数量为：", cpuNum)
+	runtime.GOMAXPROCS(cpuNum - 2)
 	// 创建 Trace 文件
 	f, err := os.Create("trace.out")
 	if err != nil {
@@ -237,7 +252,8 @@ func main() {
 	}
 	defer trace.Stop()
 
-	buffer := []int{1, 3, 5, 10} // 生产者数据源
+	// buffer := []int{1, 3, 5, 10} // 生产者数据源
+	buffer := generateRandomArray(1000000, 1000)
 	ch := make(chan int, 3)
 	ch2 := make(chan int, 3)
 	ch3 := make(chan int, 3) // 第三个通道，给 consumer3 用
